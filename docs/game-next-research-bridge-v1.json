@@ -1,0 +1,306 @@
+{
+  "filename": "docs/game-next-research-bridge-v1.json",
+  "destination": "GameNext/docs/game-next-research-bridge-v1.json",
+  "contents": {
+    "id": "game-next-research-bridge-v1",
+    "title": "GameNext Research Bridge: Near-Term Features and Long-Term Speculation",
+    "version": "v1",
+    "sections": [
+      {
+        "id": "governance-and-ratios",
+        "title": "Governance, Ratios, and Topic Lifecycle",
+        "summary": "Defines how near-term and speculative topics coexist, how ratios are enforced, and how topics evolve over time.",
+        "designDecisions": [
+          {
+            "id": "ratio-policy-nt-vs-spec",
+            "statement": "Maintain 60–70% of active research topics in `open` or `in-progress` states that are implementable on current PC/console/engine hardware, with the remaining 30–40% reserved for speculative and forward-looking research.",
+            "rationale": [
+              "Prevents the repository from drifting into purely theoretical work.",
+              "Ensures continuous delivery of features, optimizations, and integration wins for developers.",
+              "Creates a disciplined pipeline where speculative topics must be anchored to concrete sub-topics."
+            ],
+            "status": "adopted",
+            "implications": [
+              "New speculative topics must declare at least one concrete anchor topicId in the same category.",
+              "CI or tooling can periodically compute this ratio and warn when speculative load is too high."
+            ]
+          },
+          {
+            "id": "topic-lifecycle-states",
+            "statement": "All research topics follow a lifecycle with states: `open` → `in-progress` → `implemented` or `blocked` → optionally `retired`.",
+            "rationale": [
+              "Provides a clear, machine-trackable lifecycle for research objects.",
+              "Enables dashboards and AI tools to focus on actionable work.",
+              "Supports historical analysis of which speculative ideas matured into implemented features."
+            ],
+            "status": "adopted"
+          }
+        ],
+        "missingPieces": [
+          "Automated tooling that computes the near-term vs speculative ratio and enforces category-level thresholds.",
+          "Dashboards or reports that highlight aging `open` topics with no linked experiments or commits.",
+          "Policies for when and how to transition `speculative` topics to `open` once feasibility is proven."
+        ],
+        "proposedFunctions": [
+          {
+            "id": "compute_topic_ratios",
+            "signature": "compute_topic_ratios(topics: [ResearchTopic]) -> { near_term_ratio: f32, speculative_ratio: f32 }",
+            "description": "Scans all topics and returns the proportion of near-term (`open`, `in-progress`) vs `speculative` topics."
+          },
+          {
+            "id": "enforce_ratio_policy",
+            "signature": "enforce_ratio_policy(topics: [ResearchTopic], min_near_term: f32, max_speculative: f32) -> PolicyReport",
+            "description": "Evaluates whether the current set of topics violates configured ratios and produces human-readable and machine-readable warnings."
+          }
+        ]
+      },
+      {
+        "id": "anchored-speculation",
+        "title": "Anchoring Speculative Topics to Concrete Work",
+        "summary": "Formalizes how long-term, speculative ideas are tied to near-term, implementable sub-topics.",
+        "patterns": [
+          {
+            "id": "anchor-bci-hw-co-design",
+            "categoryId": "bci-hardware-codesign",
+            "speculativeTopic": "bci-hw-signal-quality-models",
+            "anchors": [
+              "bci-mapping-hdr-palettes"
+            ],
+            "mechanism": "The speculative work on multi-component signalQuality models is anchored by concrete tasks to calibrate scalar qualityGuard behavior on existing engines and displays.",
+            "math": {
+              "scalar_guard": "guard = clamp01(signalQuality / t)  (for signalQuality < t),  guard = 1.0  (for signalQuality >= t)",
+              "multi_component_quality": "signalQuality_ext = w1 * spatialCoverage + w2 * SNR + w3 * motionRobustness",
+              "collapse": "signalQuality = clamp01(signalQuality_ext)"
+            },
+            "proofSketch": [
+              "Given signalQuality_ext ∈ [0,1] and weights w1, w2, w3 ≥ 0 with w1 + w2 + w3 = 1, signalQuality_ext is bounded in [0,1].",
+              "The collapse function signalQuality = clamp01(signalQuality_ext) preserves bounds and monotonicity.",
+              "Existing guard formulas and shaders that take a scalar signalQuality remain valid, so backward compatibility is preserved."
+            ]
+          },
+          {
+            "id": "anchor-grime-unified-geometry",
+            "categoryId": "grime-systems",
+            "speculativeTopic": "grime-unified-geometry-layer",
+            "anchors": [
+              "grime-binding-schema",
+              "grime-optimization-lod"
+            ],
+            "mechanism": "The speculative goal of a unified grime/wear/buildup geometry layer is anchored by a concrete binding schema and performance-tuned LOD strategies.",
+            "math": {
+              "wetness_integration": "w_next = clamp01(w_prev + r * Δt - d * (1 - rainIntensity) * Δt)",
+              "mud_decay": "m_next = clamp01(m_prev + m_rate * Δt - k * (rainIntensity * α + movementSpeed * β) * Δt)"
+            },
+            "parameterNotes": {
+              "r": "rain accumulation rate",
+              "d": "drying rate",
+              "α": "rain influence factor",
+              "β": "movement influence factor"
+            }
+          }
+        ],
+        "missingPieces": [
+          "Explicit `anchors` field in the research-topic schema linking speculative topics to concrete topicIds.",
+          "CI rule that rejects new speculative topics without at least one declared anchor.",
+          "Example notebooks or test scenes demonstrating end-to-end: speculative idea → concrete implementation → telemetry."
+        ],
+        "proposedSchemaExtension": {
+          "targetSchema": "game-next-research-topic-v1",
+          "addField": {
+            "name": "anchors",
+            "type": "array",
+            "itemsType": "string",
+            "description": "Optional list of topicIds that this topic is anchored to. Required for speculative topics to ensure a concrete implementation path."
+          }
+        }
+      },
+      {
+        "id": "terminology-and-definition-system",
+        "title": "Internal and Industry Terminology Integration",
+        "summary": "How internal GameNext terms and external engine concepts form a unified, schema-backed dictionary.",
+        "internalTerms": [
+          {
+            "term": "grimeAdhesion",
+            "origin": "GameNext",
+            "definition": "A scalar in [0,1] describing how strongly grime adheres to a surface before being removed by environmental effects or motion.",
+            "relatedSchemas": [
+              "grime-geometry-binding-v1"
+            ],
+            "exampleFormula": "effectiveMud = mud * grimeAdhesion * (1 - porosity)"
+          },
+          {
+            "term": "CIC",
+            "origin": "GameNext",
+            "definition": "Constellation Integrity Coefficient; a scalar in [0,1] that combines signal confidence, model stability, and internal consistency checks.",
+            "relatedSchemas": [
+              "game-next-ai-bci-geometry-request-v1",
+              "game-next-bci-geometry-binding-v1"
+            ],
+            "exampleUsage": "visualIntensity = baseIntensity * CIC"
+          },
+          {
+            "term": "LSG",
+            "origin": "GameNext",
+            "definition": "Latency Safety Guard; a scalar in [0,1] that modulates the rate of change of visual and audio parameters to avoid sudden, disorienting shifts.",
+            "relatedSchemas": [
+              "game-next-ai-bci-geometry-request-v1",
+              "game-next-bci-geometry-binding-v1"
+            ],
+            "exampleFormula": "Δparam_max = baseStep * (1 - LSG)"
+          },
+          {
+            "term": "maskRadius",
+            "origin": "GameNext",
+            "definition": "A scalar in [0,1] representing the normalized radius of a visual mask or vignette from the screen center.",
+            "relatedSchemas": [
+              "game-next-bci-geometry-binding-v1"
+            ],
+            "exampleFormula": "maskRadius = clamp01(0.95 - 0.55 * stressScore - 0.35 * visualOverloadIndex)"
+          }
+        ],
+        "industryTerms": [
+          {
+            "term": "nanite geometry",
+            "source": "contributed",
+            "definition": "An approach to virtualized geometry where meshes are stored and streamed at very high detail using hierarchical or cluster-based LOD, enabling billions of triangles in a scene.",
+            "relatedSchemas": [
+              "game-next-bci-geometry-binding-v1",
+              "grime-geometry-binding-v1"
+            ],
+            "integrationNotes": [
+              "GameNext bindings should treat nanite-like geometry as a target for density-aware effects, e.g., grime density scaled by triangle density and screen-space size.",
+              "BCI-driven parameters (e.g., motionSmear) must respect existing LOD transitions to avoid popping artifacts."
+            ]
+          },
+          {
+            "term": "spatial audio buses",
+            "source": "ai-inferred",
+            "definition": "Logical routing channels in an audio engine that carry spatialized audio streams, which can be mixed, filtered, and controlled independently.",
+            "relatedSchemas": [
+              "game-next-bci-geometry-binding-v1"
+            ],
+            "integrationNotes": [
+              "Attributes like infectedChannelGain, squadMuffle, heartbeatGain, breathGain, and ringingLevel should map onto specific bus gains and filters.",
+              "Direct is typically mapped to a non-spatial or minimally processed UI/alert bus."
+            ]
+          }
+        ],
+        "missingPieces": [
+          "A formal `engine_id` registry that ties industry terms to concrete engine subsystems.",
+          "Automated checks to ensure internal terms used in schemas and Rust structs have definition entries.",
+          "End-to-end examples where a term definition, a schema field, and an engine mapping are all visible in one doc."
+        ],
+        "proposedTools": [
+          {
+            "id": "validate_term_registry",
+            "signature": "validate_term_registry(repoRoot) -> TermValidationReport",
+            "description": "Scans schemas and Rust crates, ensures all internal terms are present in ai-definition-response entries, and flags mismatches."
+          },
+          {
+            "id": "generate_term_reference",
+            "signature": "generate_term_reference(format: 'markdown' | 'html') -> String",
+            "description": "Builds a human-readable glossary from the term registry for inclusion in docs."
+          }
+        ]
+      },
+      {
+        "id": "engine-compat-index",
+        "title": "Engine Compatibility Index and Gap Analysis",
+        "summary": "Formalizes how compatibility with engines is modeled, tracked, and used to drive new research topics.",
+        "sqlExtension": {
+          "filename": "sql/game-next-engine-compat.sql",
+          "destination": "GameNext/sql/game-next-engine-compat.sql",
+          "schema": [
+            "PRAGMA foreign_keys = ON;",
+            "",
+            "CREATE TABLE IF NOT EXISTS engine_registry (",
+            "    engine_id    TEXT PRIMARY KEY,",
+            "    name         TEXT NOT NULL,",
+            "    version      TEXT NOT NULL,",
+            "    notes        TEXT NOT NULL DEFAULT ''",
+            ");",
+            "",
+            "CREATE TABLE IF NOT EXISTS engine_contract_compat (",
+            "    engine_id     TEXT NOT NULL REFERENCES engine_registry(engine_id) ON DELETE CASCADE,",
+            "    contract_id   TEXT NOT NULL REFERENCES contract_registry(contract_id) ON DELETE CASCADE,",
+            "    support_level TEXT NOT NULL CHECK (support_level IN ('native','adapter','planned','unsupported')),",
+            "    notes         TEXT NOT NULL DEFAULT '',",
+            "    PRIMARY KEY (engine_id, contract_id)",
+            ");",
+            "",
+            "CREATE INDEX IF NOT EXISTS idx_engine_compat_support",
+            "    ON engine_contract_compat (engine_id, support_level);"
+          ]
+        },
+        "supportLevelGuidelines": [
+          {
+            "level": "native",
+            "definition": "The contract can be wired into the engine using documented, stable APIs with no custom logic beyond simple parameter assignment.",
+            "example": "A GameNext grime binding mapped directly into an engine's material parameter collection with no additional shader code."
+          },
+          {
+            "level": "adapter",
+            "definition": "The contract can be integrated via a thin, reusable glue layer that translates GameNext data into engine-specific constructs.",
+            "example": "A Rust crate plus small engine plugin that converts BCI geometry bindings into engine material and audio parameters."
+          },
+          {
+            "level": "planned",
+            "definition": "Integration is desired and tracked but not implemented; may have design docs or issues.",
+            "example": "A research topic exists for mapping new BCI fields to a particular engine’s post-processing stack."
+          },
+          {
+            "level": "unsupported",
+            "definition": "No known integration; either technically infeasible or not yet investigated.",
+            "example": "An advanced BCI binding that depends on engine features not yet available."
+          }
+        ],
+        "proposedFunctions": [
+          {
+            "id": "register_engine_compat",
+            "signature": "register_engine_compat(engineId, contractId, supportLevel, notes) -> sqlRow",
+            "description": "Inserts or updates a row in engine_contract_compat to record compatibility."
+          },
+          {
+            "id": "find_gaps_for_engine",
+            "signature": "find_gaps_for_engine(engineId) -> [contractId]",
+            "description": "Returns contracts that are missing from engine_contract_compat or marked as unsupported."
+          }
+        ],
+        "missingPieces": [
+          "Rust utility functions that wrap the SQL engine_compat schema.",
+          "Linking gap analysis results to automatic creation of new research topics in the research index.",
+          "Example reports or views that summarize coverage per engine and per domain."
+        ]
+      },
+      {
+        "id": "ai-chat-and-tooling-integration",
+        "title": "AI-First Integration and Tooling Pathways",
+        "summary": "Describes how AI tools interact with the research, definition, and compatibility layers to produce high-quality code and docs.",
+        "integrationFlows": [
+          {
+            "id": "ai-assisted-feature-design",
+            "steps": [
+              "AI queries research_topic + engine_contract_compat to find open topics relevant to a target engine and domain.",
+              "AI reads relatedSchemas and term definitions to understand the contract surfaces involved.",
+              "AI proposes new Rust modules, JSON schemas, or SQL extensions that align with existing contracts and invariants.",
+              "AI emits fully-formed files (no placeholders) and links them back to topicIds via meta fields for traceability."
+            ]
+          },
+          {
+            "id": "ai-driven-gap-closing",
+            "steps": [
+              "AI calls find_gaps_for_engine(engineId) to identify unsupported contracts.",
+              "For each gap, AI creates or updates a research_topic entry with domain, hypothesis, and experiments.",
+              "AI can generate skeleton integration docs (not code stubs) that show how mappings might work in principle."
+            ]
+          }
+        ],
+        "missingPieces": [
+          "Standardized meta fields linking code files and topics (e.g., `meta.topicIds` in schemas or Rust modules).",
+          "Lightweight CLI helpers for querying and updating the research and compatibility indices.",
+          "Guidelines for model evaluation: how to check that AI-generated code respects safety and authenticity constraints."
+        ]
+      }
+    ]
+  }
+}
