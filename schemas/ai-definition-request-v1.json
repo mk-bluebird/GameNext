@@ -1,0 +1,18 @@
+{
+  "filename": "schemas/ai-definition-request-v1.json",
+  "destination": "GameNext/schemas/ai-definition-request-v1.json",
+  "contents": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "id": "ai-definition-request-v1",
+    "title": "AI Definition Request",
+    "type": "object",
+    "required": ["term", "context"],
+    "properties": {
+      "term": { "type": "string" },
+      "context": { "type": "string", "enum": ["bci", "grime", "physics", "rendering", "audio", "input", "general"] },
+      "scope": { "type": "string", "enum": ["short", "full", "contract"] },
+      "maxTokens": { "type": "integer", "minimum": 32, "maximum": 2048 }
+    },
+    "additionalProperties": false
+  }
+}
