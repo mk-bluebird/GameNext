@@ -1,0 +1,45 @@
+{
+  "filename": "schemas/game-next-research-topic-v1.json",
+  "destination": "GameNext/schemas/game-next-research-topic-v1.json",
+  "contents": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "id": "game-next-research-topic-v1",
+    "title": "GameNext Research Topic",
+    "type": "object",
+    "description": "A structured research topic entry, used to describe open questions, hypotheses, and integration points within the GameNext ecosystem.",
+    "required": ["topicId", "title", "domain", "status", "relatedContracts"],
+    "properties": {
+      "topicId": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+      "title": { "type": "string" },
+      "domain": {
+        "type": "string",
+        "enum": ["rendering", "audio", "physics", "ai", "bci", "input", "data", "tools", "cross-cutting"]
+      },
+      "status": {
+        "type": "string",
+        "enum": ["open", "in-progress", "implemented", "blocked", "speculative"]
+      },
+      "abstract": { "type": "string" },
+      "hypothesis": { "type": "string" },
+      "experiments": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "relatedContracts": {
+        "type": "array",
+        "items": { "type": "string", "pattern": "^game-next-[a-z-]+-v\\d+$" }
+      },
+      "predictedHardware": {
+        "type": "object",
+        "properties": {
+          "minGpuFlops": { "type": "number" },
+          "recommendedMemoryMB": { "type": "number" },
+          "notes": { "type": "string" }
+        },
+        "additionalProperties": true
+      },
+      "meta": { "type": "object", "additionalProperties": true }
+    },
+    "additionalProperties": false
+  }
+}
