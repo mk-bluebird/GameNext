@@ -184,10 +184,7 @@ pub fn lookup_term(conn: &Connection, term: &str) -> Result<Option<TermDefinitio
     }
 }
 
-pub fn register_engine(
-    conn: &Connection,
-    engine: &EngineInfo,
-) -> Result<()> {
+pub fn register_engine(conn: &Connection, engine: &EngineInfo) -> Result<()> {
     conn.execute(
         "INSERT OR REPLACE INTO engine_registry (engine_id, name, version, notes)
          VALUES (?1, ?2, ?3, ?4)",
@@ -196,10 +193,7 @@ pub fn register_engine(
     Ok(())
 }
 
-pub fn register_engine_compat(
-    conn: &Connection,
-    compat: &EngineContractCompat,
-) -> Result<()> {
+pub fn register_engine_compat(conn: &Connection, compat: &EngineContractCompat) -> Result<()> {
     conn.execute(
         "INSERT OR REPLACE INTO engine_contract_compat
          (engine_id, contract_id, support_level, notes)
@@ -252,13 +246,21 @@ mod tests {
         assert_eq!(topics.len(), 1);
         assert_eq!(topics[0].topic_id, "test-topic");
 
-        define_term(&conn, "CIC", "Constellation Integrity Coefficient", "game-next-docs").unwrap();
+        define_term(
+            &conn,
+            "CIC",
+            "Constellation Integrity Coefficient",
+            "game-next-docs",
+        )
+        .unwrap();
         link_term_to_contract(&conn, "CIC", "game-next-bci-geometry-binding-v1").unwrap();
 
         let term = lookup_term(&conn, "CIC").unwrap().unwrap();
         assert_eq!(term.term, "CIC");
         assert!(term.definition.contains("Constellation Integrity"));
-        assert!(term.related_contracts.contains(&"game-next-bci-geometry-binding-v1".to_string()));
+        assert!(term
+            .related_contracts
+            .contains(&"game-next-bci-geometry-binding-v1".to_string()));
 
         let engine = EngineInfo {
             engine_id: "unreal-5".to_string(),
