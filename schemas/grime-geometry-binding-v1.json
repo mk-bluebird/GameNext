@@ -1,0 +1,227 @@
+{
+  "filename": "schemas/grime-geometry-binding-v1.json",
+  "destination": "GameNext/schemas/grime-geometry-binding-v1.json",
+  "contents": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "id": "grime-geometry-binding-v1",
+    "title": "Grime Geometry Binding - v1",
+    "type": "object",
+    "description": "Per-region grime and wear geometry binding for characters, vehicles, and world surfaces, structurally aligned with bci-geometry-binding-v1.",
+    "required": ["id", "region", "gates", "visual", "surface"],
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Stable binding identifier, e.g., character-torso-grime, character-legs-grime, vehicle-body-grime."
+      },
+      "region": {
+        "type": "string",
+        "description": "Logical region hint such as torso, legs, head, hands, vehicle-body, vehicle-wheels, environment-tile."
+      },
+      "gates": {
+        "type": "object",
+        "description": "Invariant-style gates reused from GameNext contracts, enabling safety and quality control for grime intensity.",
+        "required": ["CIC", "AOS", "DET", "LSG"],
+        "properties": {
+          "CIC": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Constellation Integrity Coefficient; used to gate overall system confidence."
+          },
+          "AOS": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Attention or orientation score; can bias where grime is emphasized (e.g., focus areas)."
+          },
+          "DET": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Detection reliability; used to downscale grime if exposure sensing is unreliable."
+          },
+          "LSG": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Latency Safety Guard; high values should dampen fast, extreme changes in grime."
+          },
+          "UEC": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Optional entertainment/engagement metric; may influence stylization intensity for grime."
+          },
+          "EMD": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0
+          },
+          "STCI": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0
+          },
+          "CDL": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0
+          },
+          "ARR": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0
+          }
+        },
+        "additionalProperties": false
+      },
+      "visual": {
+        "type": "object",
+        "description": "Normalized visual parameters describing grime, wetness, and wear for this region.",
+        "required": [
+          "wetness",
+          "mud",
+          "soot",
+          "dust",
+          "scratchIntensity",
+          "tearIntensity",
+          "flowDirX",
+          "flowDirY",
+          "stretchDirX",
+          "stretchDirY"
+        ],
+        "properties": {
+          "wetness": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0",
+            "description": "Surface wetness; drives darkening, specular highlights, and drip effects."
+          },
+          "mud": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Mud or thick dirt accumulation; drives albedo overlays and height/normal variation."
+          },
+          "soot": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Soot, smoke, or burn mark intensity; often mapped to dark, soft overlays."
+          },
+          "dust": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Fine dust or sand accumulation; used for subtle roughness and color shifts."
+          },
+          "scratchIntensity": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Overall strength of scratches and scuffs; applied via detail normal and albedo maps."
+          },
+          "tearIntensity": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Cloth tears or material damage; can drive opacity masks and frayed edges."
+          },
+          "flowDirX": {
+            "type": "number",
+            "minimum": -1.0,
+            "maximum": 1.0,
+            "description": "X component of normalized flow direction (e.g., gravity-driven streaking for rain or mud)."
+          },
+          "flowDirY": {
+            "type": "number",
+            "minimum": -1.0,
+            "maximum": 1.0,
+            "description": "Y component of normalized flow direction."
+          },
+          "stretchDirX": {
+            "type": "number",
+            "minimum": -1.0,
+            "maximum": 1.0,
+            "description": "X component of normalized stretch direction for anisotropic wear (e.g., cloth or rubber)."
+          },
+          "stretchDirY": {
+            "type": "number",
+            "minimum": -1.0,
+            "maximum": 1.0,
+            "description": "Y component of normalized stretch direction."
+          },
+          "paletteHex": {
+            "type": "array",
+            "description": "Optional hex palette for grime colors; normalized to a fixed-size array (e.g., 5 entries) before reaching shaders, using the same normalization strategy as GameNext palettes.",
+            "items": {
+              "type": "string",
+              "pattern": "^[0-9A-Fa-f]{6}$"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "surface": {
+        "type": "object",
+        "description": "Static or slowly-varying material properties that shape how grime appears.",
+        "required": [
+          "baseRoughness",
+          "baseMetallic",
+          "porosity",
+          "fiberDensity",
+          "grimeAdhesion"
+        ],
+        "properties": {
+          "baseRoughness": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Underlying material roughness before grime, aligned with PBR workflows."
+          },
+          "baseMetallic": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Base metallic factor; used to modulate how grime affects highlights."
+          },
+          "porosity": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "How easily liquid grime is absorbed; higher values reduce long-lived wet streaks."
+          },
+          "fiberDensity": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Relative density of fibers for fabrics; affects how dust and mud are distributed."
+          },
+          "grimeAdhesion": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "General coefficient for how strongly grime adheres to this surface."
+          }
+        },
+        "additionalProperties": false
+      },
+      "meta": {
+        "type": "object",
+        "description": "Optional metadata for analytics and engine routing.",
+        "properties": {
+          "materialTag": {
+            "type": "string",
+            "description": "Engine-side tag for material, e.g., cloth, leather, metal, paint, rubber."
+          },
+          "environmentTag": {
+            "type": "string",
+            "description": "Environment classification, e.g., desert, marsh, snow, city, jungle."
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "additionalProperties": false
+  }
+}
