@@ -8,6 +8,7 @@
     "type": "object",
     "description": "Per-region BCI geometry binding for visual and audio parameters, generalized for GameNext environments.",
     "required": ["id", "region", "gates", "visual", "audio"],
+    "additionalProperties": false,
     "properties": {
       "id": {
         "type": "string",
@@ -31,39 +32,43 @@
           "veinOverlay",
           "motionSmear"
         ],
+        "additionalProperties": true,
         "properties": {
           "maskRadius": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0
+            "maximum": 1.0,
+            "description": "Radial mask extent from the region center; 0 closes in, 1 fills the region."
           },
           "maskFeather": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0
+            "maximum": 1.0,
+            "description": "Softness of the mask edge; higher values yield smoother falloffs."
           },
           "decayGrain": {
             "type": "number",
             "minimum": 0.0,
             "maximum": 1.0,
-            "description": "Generic high-frequency detail control; in non-horror styles this can drive snow noise, sand, holographic grain, etc."
+            "description": "High-frequency detail control; can drive noise for decay, snow, sand, holographic grain, or other surface breakup."
           },
           "colorDesat": {
             "type": "number",
             "minimum": 0.0,
             "maximum": 1.0,
-            "description": "Global desaturation; in bright styles this can be inverted or remapped to saturation boosts."
+            "description": "Global desaturation amount; styles may remap this to saturation boosts or stylized color grading."
           },
           "veinOverlay": {
             "type": "number",
             "minimum": 0.0,
             "maximum": 1.0,
-            "description": "Secondary overlay intensity; in non-horror packs this may correspond to cracks, energy veins, fabric wear, foliage overlays."
+            "description": "Secondary overlay intensity; can represent veins, cracks, energy conduits, fabric wear, moss, or other line-based overlays."
           },
           "motionSmear": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0
+            "maximum": 1.0,
+            "description": "Motion smear or directional blur intensity; typically biased by BCI or gameplay motion state."
           },
           "paletteHex": {
             "type": "array",
@@ -71,10 +76,9 @@
               "type": "string",
               "pattern": "^[0-9A-Fa-f]{6}$"
             },
-            "description": "Array of 6-digit RGB hex color strings; normalization to fixed-size uniform palettes follows the GameNext palette handler."
+            "description": "Array of 6-digit RGB hex colors. Engines normalize this to a fixed-size uniform palette according to the GameNext palette handler."
           }
-        },
-        "additionalProperties": true
+        }
       },
       "audio": {
         "type": "object",
@@ -87,116 +91,128 @@
           "ringingLevel",
           "direct"
         ],
+        "additionalProperties": true,
         "properties": {
           "infectedChannelGain": {
             "type": "number",
             "minimum": 0.0,
             "maximum": 1.0,
-            "description": "Generic focus/inner voice/emphasis channel gain; can be mapped to character breathing, engine rumble, ambience, etc."
+            "description": "Inner-focus or special-channel gain; can drive hallucination layers, inner voice, or emphasized ambience."
           },
           "squadMuffle": {
             "type": "number",
             "minimum": 0.0,
             "maximum": 1.0,
-            "description": "Muffle factor for auxiliary comms/dialogue channels."
+            "description": "Muffle factor for squad, NPC, or auxiliary dialogue buses."
           },
           "heartbeatGain": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0"
+            "maximum": 1.0,
+            "description": "Gain for heartbeat or internal body-signal buses."
           },
           "breathGain": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0"
+            "maximum": 1.0,
+            "description": "Gain for breathing, exertion, or fatigue cues."
           },
           "ringingLevel": {
             "type": "number",
             "minimum": 0.0,
             "maximum": 1.0,
-            "description": "High-frequency emphasis, usable as tinnitus, HUD ping intensity, or UI shimmer."
+            "description": "High-frequency emphasis; can be used for tinnitus, HUD pings, UI shimmer, or similar accents."
           },
           "direct": {
             "type": "number",
             "minimum": 0.0,
             "maximum": 1.0,
-            "description": "Direct/dry path gain for clarity channels; in non-horror packs this is typically high for UI and guidance."
+            "description": "Direct/dry path gain for clarity channels such as UI, guidance, or critical alerts."
           }
-        },
-        "additionalProperties": true
+        }
       },
       "meta": {
         "type": "object",
         "description": "Optional per-binding metadata for tuning, analytics, and environment classification.",
+        "additionalProperties": true,
         "properties": {
           "style": {
-            "type": "string"
+            "type": "string",
+            "description": "Style pack identifier, e.g., Rotting-Visuals, Calm-Exploration, Sci-Fi-Neon."
           },
           "geometryVersion": {
-            "type": "string"
+            "type": "string",
+            "description": "Engine-side geometry or material version tag, used for migration and analytics."
           },
           "environmentTag": {
             "type": "string",
             "description": "High-level environment label, e.g., desert, city, snow, forest, sci-fi, underwater."
           }
-        },
-        "additionalProperties": true
+        }
       }
     },
     "definitions": {
       "gates": {
         "type": "object",
         "required": ["CIC", "AOS", "DET", "LSG"],
+        "additionalProperties": false,
         "properties": {
           "CIC": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0
+            "maximum": 1.0,
+            "description": "Constellation Integrity Coefficient; overall system confidence and stability gate."
           },
           "AOS": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0
+            "maximum": 1.0,
+            "description": "Attention or orientation score; biases where and how strongly bindings are applied."
           },
           "DET": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0
+            "maximum": 1.0,
+            "description": "Detection reliability gate; downscales effects when BCI or sensor signals are unreliable."
           },
           "LSG": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0
+            "maximum": 1.0,
+            "description": "Latency Safety Guard; limits how quickly visual and audio parameters can change."
           },
           "UEC": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0
+            "maximum": 1.0,
+            "description": "Uncertainty and engagement coefficient; optional entertainment metric."
           },
           "EMD": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0
+            "maximum": 1.0,
+            "description": "Evidence mystery depth; optional entertainment metric."
           },
           "STCI": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0
+            "maximum": 1.0,
+            "description": "Safe-threat contrast index; optional entertainment metric."
           },
           "CDL": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0
+            "maximum": 1.0,
+            "description": "Cognitive dissonance load; optional entertainment metric."
           },
           "ARR": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0
+            "maximum": 1.0,
+            "description": "Ambiguous resolution rating; optional entertainment metric."
           }
-        },
-        "additionalProperties": false
+        }
       }
-    },
-    "additionalProperties": false
+    }
   }
 }
