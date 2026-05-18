@@ -1,0 +1,202 @@
+{
+  "filename": "schemas/game-next-bci-geometry-binding-v1.json",
+  "destination": "GameNext/schemas/game-next-bci-geometry-binding-v1.json",
+  "contents": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "id": "game-next-bci-geometry-binding-v1",
+    "title": "GameNext BCI Geometry Binding - v1",
+    "type": "object",
+    "description": "Per-region BCI geometry binding for visual and audio parameters, generalized for GameNext environments.",
+    "required": ["id", "region", "gates", "visual", "audio"],
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Stable binding identifier, e.g., monster-mask-shell, grime-body-shell, sky-fog-layer."
+      },
+      "region": {
+        "type": "string",
+        "description": "Logical region hint, e.g., foveal, peripheral-ring, sky, character-body, vehicle."
+      },
+      "gates": {
+        "$ref": "#/definitions/gates"
+      },
+      "visual": {
+        "type": "object",
+        "description": "Normalized visual parameters for this binding.",
+        "required": [
+          "maskRadius",
+          "maskFeather",
+          "decayGrain",
+          "colorDesat",
+          "veinOverlay",
+          "motionSmear"
+        ],
+        "properties": {
+          "maskRadius": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0
+          },
+          "maskFeather": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0
+          },
+          "decayGrain": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Generic high-frequency detail control; in non-horror styles this can drive snow noise, sand, holographic grain, etc."
+          },
+          "colorDesat": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Global desaturation; in bright styles this can be inverted or remapped to saturation boosts."
+          },
+          "veinOverlay": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Secondary overlay intensity; in non-horror packs this may correspond to cracks, energy veins, fabric wear, foliage overlays."
+          },
+          "motionSmear": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0
+          },
+          "paletteHex": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[0-9A-Fa-f]{6}$"
+            },
+            "description": "Array of 6-digit RGB hex color strings; normalization to fixed-size uniform palettes follows the GameNext palette handler."
+          }
+        },
+        "additionalProperties": true
+      },
+      "audio": {
+        "type": "object",
+        "description": "Normalized audio parameters for this binding.",
+        "required": [
+          "infectedChannelGain",
+          "squadMuffle",
+          "heartbeatGain",
+          "breathGain",
+          "ringingLevel",
+          "direct"
+        ],
+        "properties": {
+          "infectedChannelGain": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Generic focus/inner voice/emphasis channel gain; can be mapped to character breathing, engine rumble, ambience, etc."
+          },
+          "squadMuffle": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Muffle factor for auxiliary comms/dialogue channels."
+          },
+          "heartbeatGain": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0"
+          },
+          "breathGain": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0"
+          },
+          "ringingLevel": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "High-frequency emphasis, usable as tinnitus, HUD ping intensity, or UI shimmer."
+          },
+          "direct": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Direct/dry path gain for clarity channels; in non-horror packs this is typically high for UI and guidance."
+          }
+        },
+        "additionalProperties": true
+      },
+      "meta": {
+        "type": "object",
+        "description": "Optional per-binding metadata for tuning, analytics, and environment classification.",
+        "properties": {
+          "style": {
+            "type": "string"
+          },
+          "geometryVersion": {
+            "type": "string"
+          },
+          "environmentTag": {
+            "type": "string",
+            "description": "High-level environment label, e.g., desert, city, snow, forest, sci-fi, underwater."
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "definitions": {
+      "gates": {
+        "type": "object",
+        "required": ["CIC", "AOS", "DET", "LSG"],
+        "properties": {
+          "CIC": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0
+          },
+          "AOS": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0
+          },
+          "DET": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0
+          },
+          "LSG": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0
+          },
+          "UEC": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0
+          },
+          "EMD": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0
+          },
+          "STCI": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0
+          },
+          "CDL": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0
+          },
+          "ARR": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "additionalProperties": false
+  }
+}
