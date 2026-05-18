@@ -1,0 +1,22 @@
+{
+  "filename": "schemas/ai-definition-response-v1.json",
+  "destination": "GameNext/schemas/ai-definition-response-v1.json",
+  "contents": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "id": "ai-definition-response-v1",
+    "title": "AI Definition Response",
+    "type": "object",
+    "required": ["term", "definition", "relatedSchemas", "source"],
+    "properties": {
+      "term": { "type": "string" },
+      "definition": { "type": "string" },
+      "relatedSchemas": {
+        "type": "array",
+        "items": { "type": "string", "pattern": "^game-next-[a-z-]+-v\\d+$" }
+      },
+      "examples": { "type": "array", "items": { "type": "string" } },
+      "source": { "type": "string", "enum": ["game-next-docs", "contributed", "ai-inferred"] }
+    },
+    "additionalProperties": false
+  }
+}
