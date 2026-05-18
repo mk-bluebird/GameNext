@@ -4,14 +4,69 @@
   "contents": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "id": "ai-definition-request-v1",
-    "title": "AI Definition Request",
+    "title": "AI Definition Request v1",
     "type": "object",
-    "required": ["term", "context"],
+    "description": "Canonical request envelope for asking AI or tools for the definition of a GameNext term, with explicit context and scope for disambiguation.",
+    "required": ["term"],
     "properties": {
-      "term": { "type": "string" },
-      "context": { "type": "string", "enum": ["bci", "grime", "physics", "rendering", "audio", "input", "general"] },
-      "scope": { "type": "string", "enum": ["short", "full", "contract"] },
-      "maxTokens": { "type": "integer", "minimum": 32, "maximum": 2048 }
+      "term": {
+        "type": "string",
+        "description": "The term to define (e.g., grimeAdhesion, CIC, nanite geometry)."
+      },
+      "context": {
+        "type": "string",
+        "description": "Optional domain context to narrow the meaning of the term.",
+        "enum": [
+          "bci",
+          "grime",
+          "physics",
+          "rendering",
+          "audio",
+          "input",
+          "data",
+          "tools",
+          "engine",
+          "general"
+        ],
+        "default": "general"
+      },
+      "scope": {
+        "type": "string",
+        "enum": ["short", "full", "contract"],
+        "default": "short",
+        "description": "Level of detail requested: short summary, full explanation, or contract-level (schema/field focused)."
+      },
+      "termScope": {
+        "type": "string",
+        "enum": ["internal", "industry", "both"],
+        "default": "both",
+        "description": "Whether to look for GameNext-internal terms, broader industry terms, or both."
+      },
+      "maxTokens": {
+        "type": "integer",
+        "minimum": 32,
+        "maximum": 4096,
+        "default": 512,
+        "description": "Optional budget hint for the length of the returned definition."
+      },
+      "preferredSchemas": {
+        "type": "array",
+        "description": "Optional list of schema or contract IDs that the definition should prioritize when multiple meanings exist.",
+        "items": {
+          "type": "string",
+          "pattern": "^game-next-[a-z0-9-]+-v\\d+$"
+        }
+      },
+      "language": {
+        "type": "string",
+        "description": "Optional IETF language tag (e.g., en-US) for localized documentation output.",
+        "default": "en-US"
+      },
+      "meta": {
+        "type": "object",
+        "description": "Optional opaque metadata for tooling (trace IDs, client IDs, etc.).",
+        "additionalProperties": true
+      }
     },
     "additionalProperties": false
   }
