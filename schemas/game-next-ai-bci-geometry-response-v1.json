@@ -1,0 +1,49 @@
+{
+  "filename": "schemas/game-next-ai-bci-geometry-response-v1.json",
+  "destination": "GameNext/schemas/game-next-ai-bci-geometry-response-v1.json",
+  "contents": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "id": "game-next-ai-bci-geometry-response-v1",
+    "title": "GameNext AI BCI Geometry Response - v1",
+    "type": "object",
+    "description": "BCI geometry response for GameNext, returning a set of bindings per frame.",
+    "required": ["version", "experienceType", "bindings"],
+    "properties": {
+      "version": {
+        "type": "string",
+        "const": "v1"
+      },
+      "experienceType": {
+        "type": "string",
+        "enum": [
+          "monster-mode",
+          "adventure-mode",
+          "simulation-mode",
+          "training-mode",
+          "sandbox-mode"
+        ]
+      },
+      "bindings": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "$ref": "game-next-bci-geometry-binding-v1.json"
+        }
+      },
+      "meta": {
+        "type": "object",
+        "description": "Optional per-frame metadata, such as mapping version, style pack, or engine hints.",
+        "properties": {
+          "mappingVersion": {
+            "type": "string"
+          },
+          "style": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "additionalProperties": false
+  }
+}
