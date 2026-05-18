@@ -6,15 +6,24 @@
     "id": "game-next-ai-bci-geometry-request-v1",
     "title": "GameNext AI BCI Geometry Request - v1",
     "type": "object",
-    "description": "Cross-environment BCI geometry request for GameNext, compatible with prior Rotting-Visuals contracts but not limited to horror.",
-    "required": ["version", "experienceType", "regionHints", "bciSummary", "invariants"],
+    "description": "Cross-environment BCI geometry request for GameNext, compatible with Rotting-Visuals contracts and extended for non-horror experiences.",
+    "required": [
+      "version",
+      "experienceType",
+      "regionHints",
+      "bciSummary",
+      "invariants"
+    ],
+    "additionalProperties": false,
     "properties": {
       "version": {
         "type": "string",
-        "const": "v1"
+        "const": "v1",
+        "description": "Schema and protocol version for this request."
       },
       "experienceType": {
         "type": "string",
+        "description": "High-level experience mode guiding style packs and safety envelopes.",
         "enum": [
           "monster-mode",
           "adventure-mode",
@@ -25,7 +34,9 @@
       },
       "regionHints": {
         "type": "object",
+        "description": "Hints about current experience style, locale, and platform.",
         "required": ["style"],
+        "additionalProperties": false,
         "properties": {
           "style": {
             "type": "string",
@@ -40,11 +51,11 @@
             "type": "string",
             "description": "Optional target platform hint, e.g., PC, Console, VR, AR."
           }
-        },
-        "additionalProperties": false
+        }
       },
       "bciSummary": {
         "type": "object",
+        "description": "Summarized BCI state for this frame or tick.",
         "required": [
           "stressScore",
           "stressBand",
@@ -53,96 +64,111 @@
           "startleSpike",
           "signalQuality"
         ],
+        "additionalProperties": false,
         "properties": {
           "stressScore": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0
+            "maximum": 1.0,
+            "description": "Continuous stress or tension metric in [0,1]."
           },
           "stressBand": {
             "type": "string",
+            "description": "Coarse bucketed stress classification.",
             "enum": ["low", "mid", "high"]
           },
           "attentionBand": {
             "type": "string",
+            "description": "Coarse attention or focus classification.",
             "enum": ["drifting", "focused", "locked"]
           },
           "visualOverloadIndex": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0
+            "maximum": 1.0,
+            "description": "Perceived visual overload or clutter in [0,1]."
           },
           "startleSpike": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0
+            "maximum": 1.0,
+            "description": "Transient startle or surprise intensity in [0,1]."
           },
           "signalQuality": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0
+            "maximum": 1.0,
+            "description": "Overall signal quality; low values should strongly gate all effects."
           }
-        },
-        "additionalProperties": false
+        }
       },
       "invariants": {
         "type": "object",
+        "description": "Safety and entertainment invariants that gate geometry and audio intensity.",
         "required": ["CIC", "AOS", "DET", "LSG"],
+        "additionalProperties": false,
         "properties": {
           "CIC": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0
+            "maximum": 1.0,
+            "description": "Constellation Integrity Coefficient."
           },
           "AOS": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0
+            "maximum": 1.0,
+            "description": "Attention or orientation score."
           },
           "DET": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0
+            "maximum": 1.0,
+            "description": "Detection reliability or model confidence."
           },
           "LSG": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0
+            "maximum": 1.0,
+            "description": "Latency Safety Guard; higher values reduce rapid changes."
           },
           "UEC": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0
+            "maximum": 1.0,
+            "description": "Uncertainty Engagement Coefficient (optional entertainment invariant)."
           },
           "EMD": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0"
+            "maximum": 1.0,
+            "description": "Evidential Mystery Depth (optional entertainment invariant)."
           },
           "STCI": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0
+            "maximum": 1.0,
+            "description": "Safe-Threat Contrast Index (optional entertainment invariant)."
           },
           "CDL": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0
+            "maximum": 1.0,
+            "description": "Cognitive Dissonance Load (optional entertainment invariant)."
           },
           "ARR": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0
+            "maximum": 1.0,
+            "description": "Ambiguous Resolution Ratio (optional entertainment invariant)."
           }
-        },
-        "additionalProperties": false
+        }
       },
       "meta": {
         "type": "object",
-        "description": "Optional client metadata, logging tags, or experiment identifiers.",
+        "description": "Optional client metadata, logging tags, experiment identifiers, or AI-chat hints.",
         "additionalProperties": true
       }
-    },
-    "additionalProperties": false
+    }
   }
 }
