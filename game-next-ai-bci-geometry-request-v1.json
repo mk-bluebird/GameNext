@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id": "game-next-ai-bci-geometry-request-v1",
+  "title": "GameNext AI BCI Geometry Request v1",
+  "type": "object",
+  "required": ["version", "experienceType", "regionHints", "bciSummary", "invariants"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {"type": "string", "const": "v1"},
+    "experienceType": {
+      "type": "string",
+      "enum": ["monster-mode", "grime-survival", "echo-decay"]
+    },
+    "regionHints": {
+      "type": "object",
+      "required": ["style"],
+      "properties": {
+        "style": {
+          "type": "string",
+          "enum": ["Rotting-Visuals", "Urban-Grime", "Echo-Decay"]
+        },
+        "locale": {"type": "string", "pattern": "^[a-z]{2}-[A-Z]{2}$"}
+      }
+    },
+    "bciSummary": {
+      "type": "object",
+      "required": ["stressScore", "stressBand", "attentionBand", "visualOverloadIndex", "startleSpike", "signalQuality"],
+      "properties": {
+        "stressScore": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+        "stressBand": {"type": "string", "enum": ["low", "mid", "high"]},
+        "attentionBand": {"type": "string", "enum": ["drifting", "focused", "locked"]},
+        "visualOverloadIndex": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+        "startleSpike": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+        "signalQuality": {"type": "number", "minimum": 0.0, "maximum": 1.0}
+      }
+    },
+    "invariants": {
+      "type": "object",
+      "required": ["CIC", "AOS", "DET", "LSG"],
+      "properties": {
+        "CIC": {"type": "number", "minimum": 0.0, "maximum": 1.0, "description": "Constellation Integrity Coefficient"},
+        "AOS": {"type": "number", "minimum": 0.0, "maximum": 1.0, "description": "Attention Orientation Score"},
+        "DET": {"type": "number", "minimum": 0.0, "maximum": 1.0, "description": "Detection Reliability"},
+        "LSG": {"type": "number", "minimum": 0.0, "maximum": 1.0, "description": "Latency Safety Guard"},
+        "UEC": {"type": "number", "minimum": 0.0, "maximum": 1.0, "description": "User Experience Comfort"},
+        "EMD": {"type": "number", "minimum": 0.0, "maximum": 1.0, "description": "Emotional Depth"},
+        "STCI": {"type": "number", "minimum": 0.0, "maximum": 1.0, "description": "Sustained Tension-Comfort Index"},
+        "CDL": {"type": "number", "minimum": 0.0, "maximum": 1.0, "description": "Churn/Dropout Likelihood"},
+        "ARR": {"type": "number", "minimum": 0.0, "maximum": 1.0, "description": "Attention Retention Rate"}
+      }
+    }
+  }
+}
