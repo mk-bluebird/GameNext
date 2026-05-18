@@ -4,18 +4,85 @@
   "contents": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "id": "ai-definition-response-v1",
-    "title": "AI Definition Response",
+    "title": "AI Definition Response v1",
     "type": "object",
-    "required": ["term", "definition", "relatedSchemas", "source"],
+    "description": "Canonical response format for term definitions used by GameNext, including provenance and links to contracts and code locations.",
+    "required": ["term", "definition", "source"],
     "properties": {
-      "term": { "type": "string" },
-      "definition": { "type": "string" },
+      "term": {
+        "type": "string",
+        "description": "The term being defined (e.g., grimeAdhesion, CIC, nanite geometry)."
+      },
+      "definition": {
+        "type": "string",
+        "description": "Human-readable explanation of the term as used in GameNext or mapped from external usage."
+      },
       "relatedSchemas": {
         "type": "array",
-        "items": { "type": "string", "pattern": "^game-next-[a-z-]+-v\\d+$" }
+        "description": "IDs or paths of schemas/contracts where this term appears or is formally defined.",
+        "items": {
+          "type": "string",
+          "description": "Schema ID or contract identifier, such as a JSON Schema $id or game-next-* contract ID."
+        }
       },
-      "examples": { "type": "array", "items": { "type": "string" } },
-      "source": { "type": "string", "enum": ["game-next-docs", "contributed", "ai-inferred"] }
+      "examples": {
+        "type": "array",
+        "description": "Short usage examples or snippets referencing the term.",
+        "items": {
+          "type": "string"
+        }
+      },
+      "source": {
+        "type": "string",
+        "enum": ["game-next-docs", "authoritative", "contributed", "ai-inferred"],
+        "description": "Provenance of the definition: internal docs/contracts (game-next-docs, authoritative), community/maintainer input (contributed), or AI-inferred mappings."
+      },
+      "internalMapping": {
+        "type": "object",
+        "description": "For internal GameNext terms, maps the term to concrete struct fields, schema paths, or engine bindings.",
+        "properties": {
+          "schemaPaths": {
+            "type": "array",
+            "description": "JSON Pointer or dot-style paths into schemas where this term is a field or definition.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rustTypes": {
+            "type": "array",
+            "description": "Fully-qualified Rust type or field paths where this term appears (e.g., crate::bci::VisualParams::mask_radius).",
+            "items": {
+              "type": "string"
+            }
+          },
+          "engineMappings": {
+            "type": "array",
+            "description": "Optional engine-specific property names or bindings for this term (e.g., Unreal material parameter names).",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": true
+      },
+      "meta": {
+        "type": "object",
+        "description": "Optional metadata for indexing, versioning, or tagging.",
+        "properties": {
+          "version": {
+            "type": "string",
+            "description": "Version tag for the definition entry, independent of schema version."
+          },
+          "tags": {
+            "type": "array",
+            "description": "Free-form tags for search and filtering (e.g., rendering, audio, bci, grime).",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": true
+      }
     },
     "additionalProperties": false
   }
