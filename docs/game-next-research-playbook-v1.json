@@ -1,0 +1,285 @@
+{
+  "filename": "docs/game-next-research-playbook-v1.json",
+  "destination": "GameNext/docs/game-next-research-playbook-v1.json",
+  "contents": {
+    "id": "game-next-research-playbook-v1",
+    "title": "GameNext Research Playbook - Near-Term Features Anchored to Long-Term Directions",
+    "version": "v1",
+    "categories": [
+      {
+        "categoryId": "bci-hardware-codesign",
+        "title": "BCI–Hardware Co-Design Anchored to Current Engines",
+        "nearTermFocus": "Map BCI geometry outputs and invariants into real-time PC/console engines with measurable visual/audio impacts and safety gates.",
+        "longTermDirection": "Co-design next-generation BCI devices and runtime contracts that expose richer invariants (beyond CIC, AOS, DET, LSG) to engines while maintaining strict safety envelopes.",
+        "objects": [
+          {
+            "topicId": "bci-mapping-hdr-palettes",
+            "title": "HDR-Compatible BCI Geometry and Palette Mapping",
+            "domain": "bci",
+            "status": "open",
+            "abstract": "Define algebraic mappings from BciSummary + invariants to HDR-ready visual parameters and color palettes that work across engines (Unreal-style, Unity-style, Bevy, Godot) without breaking safety gates.",
+            "hypothesis": "By constraining all visual parameters to [0,1] and using calibrated, piecewise-linear mappings, we can guarantee that maskRadius, decayGrain, colorDesat, and motionSmear remain safe while still producing expressive effects under varying HDR tone mappings.",
+            "experiments": [
+              "Derive bounded functions f_mask, f_decay, f_desat, f_smear such that for any stressScore, visualOverloadIndex ∈ [0,1], outputs remain in [0,1] and monotone with respect to stress for at least 80% of the range.",
+              "Empirically calibrate three HDR display profiles (low, mid, high peak brightness) and measure perceived intensity vs. parameter value for colorDesat and decayGrain.",
+              "Log bcibindinggeometry-like tables for multiple games and styles, then fit inverse mappings to identify parameter ranges that cluster around comfortable vs. overwhelming experiences."
+            ],
+            "relatedContracts": [
+              "game-next-bci-geometry-binding-v1",
+              "game-next-ai-bci-geometry-request-v1",
+              "game-next-ai-bci-geometry-response-v1"
+            ],
+            "predictedHardware": {
+              "minGpuFlops": 3.0e12,
+              "recommendedMemoryMB": 8192,
+              "notes": "Assumes mid-range discrete GPU capable of HDR, SSAO, and basic ray-traced reflections at 60 FPS."
+            },
+            "math": {
+              "stressToMaskRadius": "maskRadius = clamp01(0.95 - a_s * stressScore - a_o * visualOverloadIndex)",
+              "bounds": {
+                "a_s": 0.55,
+                "a_o": 0.35,
+                "minMaskRadius": 0.02
+              },
+              "decayGrain": "decayGrain = clamp01(b0 + b_s * stressScore + b_sb * stressBandWeight)",
+              "colorDesat": "colorDesat = clamp01(c0 + c_s * stressScore + c_o * visualOverloadIndex)"
+            },
+            "whatsMissing": [
+              "Calibrated coefficients for non-horror style packs (e.g., calm exploration, sci-fi, fantasy) that re-use the same algebra but with different parameter weights.",
+              "Empirical HDR response curves that relate parameter changes (e.g., ΔcolorDesat) to perceived contrast changes on consumer displays.",
+              "Tooling to auto-generate styleconfig files (TOML/JSON) from playtest telemetry and target valence/arousal profiles."
+            ],
+            "nextFunctions": [
+              "fit_hdr_mapping(stylePack, samples) -> {a_s, a_o, b0, b_s, b_sb, c0, c_s, c_o}",
+              "suggest_safe_palette_transitions(locale, targetValence, targetArousal) -> [paletteGroupId]"
+            ]
+          },
+          {
+            "topicId": "bci-hw-signal-quality-models",
+            "title": "Signal Quality Models for Future BCI Hardware",
+            "domain": "bci",
+            "status": "speculative",
+            "abstract": "Define forward-looking models for signalQuality and derived invariants that anticipate higher-resolution, lower-latency BCI hardware while keeping current engines functional.",
+            "hypothesis": "A multi-component signalQuality model (e.g., quality = 0.4 * spatialCoverage + 0.3 * SNR + 0.3 * motionRobustness) can replace the scalar signalQuality while still being collapsible to a single guard value for legacy engines.",
+            "experiments": [
+              "Simulate three hypothetical BCI hardware generations with different noise/SNR/motion artifact characteristics and compute effective scalar qualityGuard via weighted sum.",
+              "Define an extended invariants schema that includes per-channel quality metrics but projects them down to existing LSG/CIC for current shaders.",
+              "Explore dynamic reweighting strategies where entertainment metrics (UEC, ARR) influence how aggressive the quality guard is during noisy segments."
+            ],
+            "relatedContracts": [
+              "game-next-ai-bci-geometry-request-v1",
+              "game-next-bci-geometry-binding-v1"
+            ],
+            "predictedHardware": {
+              "minGpuFlops": 2.0e12,
+              "recommendedMemoryMB": 6144,
+              "notes": "Assumes headsets or devices with local pre-processing and streaming of derived BCI metrics."
+            },
+            "math": {
+              "qualityGuard": "guard = clamp01(signalQuality / threshold) for signalQuality < threshold; guard = 1.0 otherwise",
+              "extendedQuality": "signalQuality_ext = w1 * spatialCoverage + w2 * SNR + w3 * motionRobustness"
+            },
+            "whatsMissing": [
+              "Public datasets that map raw BCI signals to gameplay-safe metrics for real users.",
+              "Standardized invariants schema that hardware vendors can adopt without leaking sensitive raw data.",
+              "Proof that linear aggregation is sufficient; may need robust or non-linear aggregation for edge cases."
+            ],
+            "nextFunctions": [
+              "collapse_extended_quality(q_ext) -> scalarSignalQuality",
+              "derive_invariant_gates_from_hardware(meta) -> {CIC, DET, LSG}"
+            ]
+          }
+        ]
+      },
+      {
+        "categoryId": "grime-systems",
+        "title": "Cross-Engine Grime and Wear Systems",
+        "nearTermFocus": "Deliver grime/wear systems that are directly pluggable into Unreal-style, Unity-style, Godot, and Bevy pipelines with shared JSON bindings and SQL telemetry.",
+        "longTermDirection": "Generalize grime systems into a unified geometry layer that covers clothing wear, vehicle dirt, environmental buildup, and stylized effects (e.g., sand, snow, ash) under BCI or non-BCI control.",
+        "objects": [
+          {
+            "topicId": "grime-binding-schema",
+            "title": "Grime Geometry Binding Specification",
+            "domain": "tools",
+            "status": "implemented",
+            "abstract": "Define grime-geometry-binding-v1.json for per-region grime parameters and static surface properties, aligned with existing bci-geometry-binding-v1 patterns.",
+            "hypothesis": "Using a normalized [0,1] grime parameter set (wetness, mud, soot, dust, scratchIntensity, tearIntensity, flowDir, stretchDir) will allow reusable shaders and telemetry across engines without loss of expressivity.",
+            "experiments": [
+              "Implement normalization pipelines for flowDir and stretchDir, ensuring magnitude constraints and stable behavior.",
+              "Compare visual results across three engines using identical grime bindings and confirm cross-engine visual similarity within tolerance.",
+              "Measure performance impact of dynamic grime updates per frame vs. event-driven updates (on impact, sliding, weather transitions)."
+            ],
+            "relatedContracts": [
+              "grime-geometry-binding-v1"
+            ],
+            "predictedHardware": {
+              "minGpuFlops": 2.5e12,
+              "recommendedMemoryMB": 8192,
+              "notes": "Assumes mid-tier GPU with support for dynamic material instances and virtual textures."
+            },
+            "math": {
+              "wetnessIntegration": "w_next = clamp01(w_prev + r * dt - d * (1 - rainIntensity) * dt)",
+              "mudDecay": "m_next = clamp01(m_prev + m_rate * dt - k * (rainIntensity * 0.4 + movementSpeed * 0.2) * dt)"
+            },
+            "whatsMissing": [
+              "Canonical mapping from grime parameters to engine-specific material parameter sets (e.g., UE material parameter collections, Unity shader properties, Godot material uniforms).",
+              "Standardized paletteHex usage for grime, linked to global palette ontologies.",
+              "Indexing schema that logs grime parameters alongside palette groups and environment styles for analytics."
+            ],
+            "nextFunctions": [
+              "map_grime_to_material(engineId, binding) -> engineParameterSet",
+              "log_grime_binding(frameId, binding, styleId) -> sqlRows"
+            ]
+          },
+          {
+            "topicId": "grime-optimization-lod",
+            "title": "LOD and Gating Strategies for Grime Systems",
+            "domain": "rendering",
+            "status": "open",
+            "abstract": "Design graceful level-of-detail and gating strategies so grime remains visually impactful without exceeding budgets on lower-tier hardware.",
+            "hypothesis": "A combination of distance-based LOD, screen-space thresholds, and invariant-based damping (CIC/LSG) can reduce grime update and shading cost by at least 50% while preserving player-visible detail.",
+            "experiments": [
+              "Define multi-level grime LODs (full, partial, baked, disabled) and benchmark across varying GPU tiers.",
+              "Use LSG and CIC to reduce update frequency for grime when system load is high or frame times are unstable.",
+              "Prototype a hybrid system where only key characters receive dynamic grime, while squads and background meshes use baked or slower-updating layers."
+            ],
+            "relatedContracts": [
+              "grime-geometry-binding-v1",
+              "game-next-research-topic-v1"
+            ],
+            "predictedHardware": {
+              "minGpuFlops": 1.5e12,
+              "recommendedMemoryMB": 4096,
+              "notes": "Targets last-gen consoles and mid-range laptops."
+            },
+            "math": {
+              "lodSelection": "lodLevel = f(distance, screenSize, cic, lsg)",
+              "updateRate": "updateInterval = baseInterval / clamp01(cic) / clamp01(1.0 - lsg)"
+            },
+            "whatsMissing": [
+              "Concrete heuristics for f(distance, screenSize, cic, lsg) that are validated across multiple titles.",
+              "Engine-specific guides for implementing grime LOD switching without shader recompilation hitches.",
+              "Telemetry schemas to correlate grime LOD decisions with player perception and performance gains."
+            ],
+            "nextFunctions": [
+              "choose_grime_lod(distance, screenSize, cic, lsg) -> {lodLevel, updateInterval}",
+              "profile_grime_cost(engineId, config) -> {msPerFrame, memoryMB}"
+            ]
+          }
+        ]
+      },
+      {
+        "categoryId": "terminology-and-definitions",
+        "title": "Unified GameNext + Industry Terminology",
+        "nearTermFocus": "Provide a deterministic, schema-backed dictionary for GameNext-native terms and industry engine concepts.",
+        "longTermDirection": "Grow a shared ontology that can be used by AI tools, documentation generators, and engine bridges to ensure consistent usage of technical language.",
+        "objects": [
+          {
+            "topicId": "definitions-internal-terms",
+            "title": "Canonical Definitions for Internal GameNext Terms",
+            "domain": "tools",
+            "status": "in-progress",
+            "abstract": "Stabilize the meaning of internal terms like grimeAdhesion, CIC, LSG, maskRadius, and colorDesat, and link them to schemas and code implementations.",
+            "hypothesis": "If each internal term is backed by at least one schema field and one code location (e.g., Rust struct or shader uniform), AI tools can reliably generate and refactor code without semantic drift.",
+            "experiments": [
+              "Generate definition entries for core terms using ai-definition-request/response, then link them to schemas and crates.",
+              "Run static analysis to find all occurrences of these terms in the repository and ensure they align with their definitions.",
+              "Add a CI check that verifies new terms added in code are either defined or intentionally scoped locally."
+            ],
+            "relatedContracts": [
+              "ai-definition-request-v1",
+              "ai-definition-response-v1",
+              "game-next-bci-geometry-binding-v1",
+              "grime-geometry-binding-v1"
+            ],
+            "predictedHardware": {
+              "minGpuFlops": 0,
+              "recommendedMemoryMB": 0,
+              "notes": "Documentation and schema-level work; no specific hardware requirement."
+            },
+            "whatsMissing": [
+              "A small CLI or Rust tool that validates all internal terms against ai-definition-response entries.",
+              "Documentation conventions for including term IDs in comments or meta fields.",
+              "A migration path when term meanings evolve (e.g., from horror-specific to multi-environment semantics)."
+            ],
+            "nextFunctions": [
+              "validate_term_usage(repoPath) -> report",
+              "generate_term_docs(termId) -> markdown"
+            ]
+          },
+          {
+            "topicId": "definitions-industry-terms",
+            "title": "Mapping Industry Engine Concepts to GameNext Contracts",
+            "domain": "cross-cutting",
+            "status": "open",
+            "abstract": "Document how GameNext contracts and bindings relate to external concepts such as nanite geometry, clustered lighting, and spatial audio buses.",
+            "hypothesis": "Treating external terms as contributed or AI-inferred definitions, with explicit `relatedSchemas`, will let AI tools bridge between engine-specific docs and GameNext contracts without misrepresenting ownership.",
+            "experiments": [
+              "Create definition entries for nanite geometry, spatial audio buses, and clustered lighting with `source: \"contributed\"` or `\"ai-inferred\"` and link them to relevant GameNext bindings.",
+              "Assess whether AI tools can generate correct engine integration snippets from these mappings without fabricating APIs.",
+              "Iteratively refine definitions based on integration feedback (e.g., Unreal or Unity plugin prototypes)."
+            ],
+            "relatedContracts": [
+              "ai-definition-request-v1",
+              "ai-definition-response-v1",
+              "game-next-bci-geometry-binding-v1",
+              "grime-geometry-binding-v1"
+            ],
+            "predictedHardware": {
+              "minGpuFlops": 0,
+              "recommendedMemoryMB": 0,
+              "notes": "Conceptual and documentation mapping work."
+            },
+            "whatsMissing": [
+              "A registry of recognized engine IDs (unreal-5, unity-hdrp, godot-4, bevy-0-14) and their feature sets.",
+              "Examples showing end-to-end from term definition to code snippet for a specific engine.",
+              "Clear policies for how to handle conflicting or evolving external terminology."
+            ],
+            "nextFunctions": [
+              "map_engine_term_to_contract(term, engineId) -> [contractId]",
+              "suggest_engine_glue(term, engineId, contractId) -> codeSnippetSummary"
+            ]
+          }
+        ]
+      },
+      {
+        "categoryId": "engine-compat",
+        "title": "Engine Compatibility and Coverage",
+        "nearTermFocus": "Track which GameNext contracts are usable in which engines and at what level of support.",
+        "longTermDirection": "Drive roadmap and research topic creation based on gaps in engine coverage and support levels.",
+        "objects": [
+          {
+            "topicId": "engine-compat-index",
+            "title": "Engine Compatibility Index",
+            "domain": "tools",
+            "status": "open",
+            "abstract": "Extend the SQLite research index with a dedicated engine_compat table that records support levels for each contract in each engine.",
+            "hypothesis": "A simple compatibility table with support_level ∈ {native, adapter, planned, unsupported} will make it easy to generate gap analyses and prioritize integration work.",
+            "experiments": [
+              "Populate engine_contract_compat for a subset of contracts and engines, then query for gaps (unsupported or missing rows).",
+              "Correlate engine coverage with research_topic entries to ensure uncovered contracts seed new topics.",
+              "Create simple visualization or CSV exports to guide planning."
+            ],
+            "relatedContracts": [
+              "game-next-research-topic-v1"
+            ],
+            "predictedHardware": {
+              "minGpuFlops": 0,
+              "recommendedMemoryMB": 0,
+              "notes": "Data and planning layer; no graphics workload."
+            },
+            "whatsMissing": [
+              "A formal definition of engine_id values and their versions.",
+              "Guidelines for what qualifies as native vs adapter vs planned.",
+              "Automated checks that prevent stale entries when contracts evolve."
+            ],
+            "nextFunctions": [
+              "register_engine_compat(engineId, contractId, supportLevel, notes) -> sqlRow",
+              "find_gaps_for_engine(engineId) -> [contractId]"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
