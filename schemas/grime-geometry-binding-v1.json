@@ -6,8 +6,9 @@
     "id": "grime-geometry-binding-v1",
     "title": "Grime Geometry Binding - v1",
     "type": "object",
-    "description": "Per-region grime and wear geometry binding for characters, vehicles, and world surfaces, structurally aligned with bci-geometry-binding-v1.",
+    "description": "Per-region grime and wear geometry binding for characters, vehicles, and world surfaces, structurally aligned with GameNext BCI and visual binding contracts.",
     "required": ["id", "region", "gates", "visual", "surface"],
+    "additionalProperties": false,
     "properties": {
       "id": {
         "type": "string",
@@ -15,18 +16,19 @@
       },
       "region": {
         "type": "string",
-        "description": "Logical region hint such as torso, legs, head, hands, vehicle-body, vehicle-wheels, environment-tile."
+        "description": "Logical region identifier such as head, torso, legs, hands, boots, vehicle-body, vehicle-wheels, environment-tile."
       },
       "gates": {
         "type": "object",
-        "description": "Invariant-style gates reused from GameNext contracts, enabling safety and quality control for grime intensity.",
+        "description": "Invariant-style gates reused from GameNext contracts, enabling safety and quality control for grime intensity and update rates.",
         "required": ["CIC", "AOS", "DET", "LSG"],
+        "additionalProperties": false,
         "properties": {
           "CIC": {
             "type": "number",
             "minimum": 0.0,
             "maximum": 1.0,
-            "description": "Constellation Integrity Coefficient; used to gate overall system confidence."
+            "description": "Constellation Integrity Coefficient; used to gate overall system confidence and disable aggressive grime updates when low."
           },
           "AOS": {
             "type": "number",
@@ -38,13 +40,13 @@
             "type": "number",
             "minimum": 0.0,
             "maximum": 1.0,
-            "description": "Detection reliability; used to downscale grime if exposure sensing is unreliable."
+            "description": "Detection reliability; used to downscale grime if exposure sensing or contact events are unreliable."
           },
           "LSG": {
             "type": "number",
             "minimum": 0.0,
             "maximum": 1.0,
-            "description": "Latency Safety Guard; high values should dampen fast, extreme changes in grime."
+            "description": "Latency Safety Guard; high values should dampen fast, extreme changes in grime to protect performance and clarity."
           },
           "UEC": {
             "type": "number",
@@ -72,8 +74,7 @@
             "minimum": 0.0,
             "maximum": 1.0
           }
-        },
-        "additionalProperties": false
+        }
       },
       "visual": {
         "type": "object",
@@ -90,11 +91,12 @@
           "stretchDirX",
           "stretchDirY"
         ],
+        "additionalProperties": false,
         "properties": {
           "wetness": {
             "type": "number",
             "minimum": 0.0,
-            "maximum": 1.0",
+            "maximum": 1.0,
             "description": "Surface wetness; drives darkening, specular highlights, and drip effects."
           },
           "mud": {
@@ -153,14 +155,13 @@
           },
           "paletteHex": {
             "type": "array",
-            "description": "Optional hex palette for grime colors; normalized to a fixed-size array (e.g., 5 entries) before reaching shaders, using the same normalization strategy as GameNext palettes.",
+            "description": "Optional RGB hex palette for grime colors; normalized to a fixed-size array (e.g., 5 entries) before reaching shaders, using the same normalization strategy as GameNext palettes.",
             "items": {
               "type": "string",
               "pattern": "^[0-9A-Fa-f]{6}$"
             }
           }
-        },
-        "additionalProperties": false
+        }
       },
       "surface": {
         "type": "object",
@@ -172,6 +173,7 @@
           "fiberDensity",
           "grimeAdhesion"
         ],
+        "additionalProperties": false,
         "properties": {
           "baseRoughness": {
             "type": "number",
@@ -203,12 +205,38 @@
             "maximum": 1.0,
             "description": "General coefficient for how strongly grime adheres to this surface."
           }
-        },
-        "additionalProperties": false
+        }
+      },
+      "audio": {
+        "type": "object",
+        "description": "Optional audio feedback parameters for grime-related state changes.",
+        "required": [],
+        "additionalProperties": false,
+        "properties": {
+          "clothRustleGain": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Fabric movement audio intensity; can increase with dust and tearIntensity."
+          },
+          "squelchGain": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Wet/mud squelch sound intensity; typically scaled by wetness and mud."
+          },
+          "frictionLevel": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Surface friction audio modulation; influenced by roughness and grime load."
+          }
+        }
       },
       "meta": {
         "type": "object",
-        "description": "Optional metadata for analytics and engine routing.",
+        "description": "Optional metadata for analytics, routing, and engine integration.",
+        "additionalProperties": true,
         "properties": {
           "materialTag": {
             "type": "string",
@@ -217,11 +245,13 @@
           "environmentTag": {
             "type": "string",
             "description": "Environment classification, e.g., desert, marsh, snow, city, jungle."
+          },
+          "style": {
+            "type": "string",
+            "description": "Style pack identifier when grime is part of a style (e.g., Urban-Grime, Desert-Dust)."
           }
-        },
-        "additionalProperties": true
+        }
       }
-    },
-    "additionalProperties": false
+    }
   }
 }
