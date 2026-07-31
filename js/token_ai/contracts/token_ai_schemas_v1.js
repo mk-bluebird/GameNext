@@ -584,6 +584,104 @@ const tokenAiDefinitionResponseSchema = {
   }
 };
 
+const tokenAiDefinitionResponseSchema = {
+  $id: "token-ai-definition-response-v1",
+  title: "Token-AI Definition Response v1",
+  type: "object",
+  description:
+    "Canonical response format for term definitions used by Token-AI, including provenance and links to contracts and code locations.",
+  required: ["term", "definition", "source"],
+  additionalProperties: false,
+  properties: {
+    term: {
+      type: "string",
+      description:
+        "The term being defined (e.g., tokenLoad, CIC, ecoImpactScore)."
+    },
+    definition: {
+      type: "string",
+      description:
+        "Human-readable explanation of the term as used in Token-AI or mapped from external usage."
+    },
+    relatedSchemas: {
+      type: "array",
+      description:
+        "IDs or paths of schemas/contracts where this term appears or is formally defined.",
+      items: {
+        type: "string",
+        description:
+          "Schema ID or contract identifier, such as a JSON Schema $id or token-ai-* contract ID."
+      }
+    },
+    examples: {
+      type: "array",
+      description: "Short usage examples or snippets referencing the term.",
+      items: {
+        type: "string"
+      }
+    },
+    source: {
+      type: "string",
+      enum: ["token-ai-docs", "authoritative", "contributed", "ai-inferred"],
+      description:
+        "Provenance of the definition: internal docs/contracts (token-ai-docs, authoritative), community/maintainer input (contributed), or AI-inferred mappings."
+    },
+    internalMapping: {
+      type: "object",
+      description:
+        "For internal Token-AI terms, maps the term to concrete struct fields, schema paths, or bindings.",
+      properties: {
+        schemaPaths: {
+          type: "array",
+          description:
+            "JSON Pointer or dot-style paths into schemas where this term is a field or definition.",
+          items: {
+            type: "string"
+          }
+        },
+        codeTypes: {
+          type: "array",
+          description:
+            "Language-specific type or field paths where this term appears (e.g., js/token_ai/usage_meter::tokenLoad).",
+          items: {
+            type: "string"
+          }
+        },
+        engineMappings: {
+          type: "array",
+          description:
+            "Optional engine-specific property names or bindings for this term (e.g., dashboard parameter names).",
+          items: {
+            type: "string"
+          }
+        }
+      },
+      additionalProperties: true
+    },
+    meta: {
+      type: "object",
+      description:
+        "Optional metadata for indexing, versioning, or tagging.",
+      properties: {
+        version: {
+          type: "string",
+          description:
+            "Version tag for the definition entry, independent of schema version."
+        },
+        tags: {
+          type: "array",
+          description:
+            "Free-form tags for search and filtering (e.g., telemetry, budgeting, safety).",
+          items: {
+            type: "string"
+          }
+        }
+      },
+      additionalProperties: true
+    }
+  }
+};
+
 const tokenAiDefinitionRequestSchema = {
   $id: "token-ai-definition-request-v1",
   title: "Token-AI Definition Request v1",
@@ -596,4 +694,143 @@ const tokenAiDefinitionRequestSchema = {
     term: {
       type: "string",
       description:
-        "The term to define (e.g., tokenLoad,
+        "The term to define (e.g., tokenLoad, ecoImpactScore, CIC)."
+    },
+    context: {
+      type: "string",
+      description:
+        "Optional domain context to narrow the meaning of the term.",
+      enum: [
+        "token-budgeting",
+        "compression",
+        "telemetry",
+        "eco-impact",
+        "prompt-guard",
+        "ai-systems",
+        "data",
+        "tools",
+        "general"
+      ],
+      default: "general"
+    },
+    scope: {
+      type: "string",
+      enum: ["short", "full", "contract"],
+      default: "short",
+      description:
+        "Level of detail requested: short summary, full explanation, or contract-level (schema/field focused)."
+    },
+    termScope: {
+      type: "string",
+      enum: ["internal", "industry", "both"],
+      default: "both",
+      description:
+        "Whether to look for Token-AI-internal terms, broader industry terms, or both."
+    },
+    maxTokens: {
+      type: "integer",
+      minimum: 32,
+      maximum: 4096,
+      default: 512,
+      description:
+        "Optional budget hint for the length of the returned definition."
+    },
+    preferredSchemas: {
+      type: "array",
+      description:
+        "Optional list of schema or contract IDs that the definition should prioritize when multiple meanings exist.",
+      items: {
+        type: "string",
+        pattern: "^token-ai-[a-z0-9-]+-v\\d+$"
+      }
+    },
+    language: {
+      type: "string",
+      description:
+        "Optional IETF language tag (e.g., en-US) for localized documentation output.",
+      default: "en-US"
+    },
+    meta: {
+      type: "object",
+      description:
+        "Optional opaque metadata for tooling (trace IDs, client IDs, etc.).",
+      additionalProperties: true
+    }
+  }
+};
+
+/**
+ * Lightweight validator for Token-AI definition requests.
+ * This does not implement full JSON Schema, but enforces the core
+ * structural and range constraints that Token-AI relies on.
+ *
+ * @param {object} req - The definition request object.
+ * @returns {{ valid: boolean, errors: string[] }}
+ */
+function validateTokenAiDefinitionRequest(req) {
+  const errors = [];
+
+  if (typeof req !== "object" || req === null || Array.isArray(req)) {
+    return { valid: false, errors: ["Request must be a non-null object."] };
+  }
+
+  if (!("term" in req) || typeof req.term !== "string" || req.term.trim() === "") {
+    errors.push("Missing or invalid required field: term.");
+  }
+
+  if ("context" in req) {
+    const allowed = tokenAiDefinitionRequestSchema.properties.context.enum;
+    if (!allowed.includes(req.context)) {
+      errors.push(`Invalid context: ${req.context}`);
+    }
+  }
+
+  if ("scope" in req) {
+    const allowed = tokenAiDefinitionRequestSchema.properties.scope.enum;
+    if (!allowed.includes(req.scope)) {
+      errors.push(`Invalid scope: ${req.scope}`);
+    }
+  }
+
+  if ("termScope" in req) {
+    const allowed = tokenAiDefinitionRequestSchema.properties.termScope.enum;
+    if (!allowed.includes(req.termScope)) {
+      errors.push(`Invalid termScope: ${req.termScope}`);
+    }
+  }
+
+  if ("maxTokens" in req) {
+    if (
+      !Number.isInteger(req.maxTokens) ||
+      req.maxTokens < 32 ||
+      req.maxTokens > 4096
+    ) {
+      errors.push("maxTokens must be an integer between 32 and 4096.");
+    }
+  }
+
+  if ("preferredSchemas" in req) {
+    if (!Array.isArray(req.preferredSchemas)) {
+      errors.push("preferredSchemas must be an array of strings.");
+    } else {
+      const pattern = /^token-ai-[a-z0-9-]+-v\d+$/;
+      for (const id of req.preferredSchemas) {
+        if (typeof id !== "string" || !pattern.test(id)) {
+          errors.push(`Invalid preferredSchemas entry: ${id}`);
+        }
+      }
+    }
+  }
+
+  if ("language" in req && typeof req.language !== "string") {
+    errors.push("language must be a string when provided.");
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
+module.exports = {
+  tokenAiDefinitionRequestSchema,
+  tokenAiDefinitionResponseSchema,
+  validateTokenAiDefinitionRequest
+};
