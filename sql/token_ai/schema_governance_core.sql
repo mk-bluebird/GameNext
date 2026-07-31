@@ -22,7 +22,7 @@ CREATE INDEX IF NOT EXISTS idx_ga_model_key
 
 CREATE TABLE IF NOT EXISTS ga_project (
     project_id      INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_key     TEXT NOT NULL UNIQUE,              -- e.g. 'Token-AI', 'HorrorPlace-Constellation'
+    project_key     TEXT NOT NULL UNIQUE,              -- e.g. 'Token-AI'
     display_name    TEXT NOT NULL,
     default_model_id INTEGER REFERENCES ga_model(model_id),
     is_active       INTEGER NOT NULL DEFAULT 1,
